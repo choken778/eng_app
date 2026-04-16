@@ -1,131 +1,250 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EngLogic 卡片</title>
-    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>英単語 Pro v30</title>
     <style>
-        :root { --primary: #007aff; }
-        body { font-family: -apple-system; margin: 0; background: #f2f2f7; color: #1c1c1e; }
+        :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --accent: #FF9F0A; --star: #FFD60A; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        .screen { position: fixed; inset: 0; background: var(--bg); padding: 20px; box-sizing: border-box; display: none; z-index: 100; flex-direction: column; }
+        .active { display: flex; }
+        .header { padding: 40px 0 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         
-        /* 顶部导航 */
-        .nav { display: flex; justify-content: space-around; padding: 15px; background: white; border-bottom: 1px solid #d1d1d6; }
-        .nav button { background: none; border: none; color: var(--primary); font-size: 16px; font-weight: 600; }
+        /* ガイドボックス */
+        .guide-box { background: #1C1C1E; border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 20px; font-size: 13px; color: #AEAEB2; line-height: 1.6; flex-shrink: 0; }
+        .guide-box b { color: var(--primary); display: block; margin-bottom: 4px; font-size: 15px; }
 
-        /* 滑动容器 */
-        #card-container { 
-            display: none; /* 默认隐藏，点击复习显示 */
-            overflow-x: auto; 
-            scroll-snap-type: x mandatory; 
-            webkit-overflow-scrolling: touch;
-            display: flex; 
-            height: 70vh;
-            align-items: center;
-        }
+        #editContainer { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .input-area { flex-shrink: 0; background: var(--bg); padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .scroll-list { flex: 1; overflow-y: auto; padding-top: 10px; }
 
-        /* 单个卡片样式 */
-        .card { 
-            min-width: 80vw; 
-            height: 50vh; 
-            margin: 0 10vw; 
-            background: white; 
-            border-radius: 25px; 
-            scroll-snap-align: center; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .card .word { font-size: 2.5rem; font-weight: bold; margin-bottom: 20px; }
-        .card .mean { font-size: 1.2rem; color: #8e8e93; display: none; } /* 默认隐藏翻译 */
-        .card.flipped .mean { display: block; } /* 翻转后显示 */
-
-        /* 录入列表样式 */
-        #list-view { padding: 20px; }
-        .input-box { background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        input { width: 100%; border: 1px solid #ddd; padding: 12px; margin: 8px 0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .btn-main { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; }
+        .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .word-info { flex: 1; overflow: hidden; }
+        .word-info b { display: block; color: #FFF; font-size: 16px; }
+        
+        input, textarea, button, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; }
+        label { display: block; font-size: 12px; color: #8E8E93; margin-top: 10px; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
+        .btn-s { width: auto; padding: 8px 12px; font-size: 11px; margin: 0; white-space: nowrap; }
+        .sec { background: #3A3A3C; } .dan { background: #FF453A; } .shi { background: #32D74B; }
+        
+        #appHeader { padding: 50px 20px 15px; background: #1C1C1E; border-bottom: 1px solid var(--border); }
+        .st-bx { background: #2C2C2E; border-radius: 10px; padding: 8px; flex: 1; text-align: center; font-size: 11px; border: 1px solid var(--border); }
+        #app { flex: 1; display: flex; align-items: center; justify-content: center; perspective: 1000px; touch-action: none; position: relative; }
+        .c-cnt { width: 85%; max-width: 320px; height: 380px; position: relative; transform-style: preserve-3d; }
+        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 25px; backface-visibility: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.6); overflow-y: auto; }
+        .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 20px; }
+        .star-btn { position: absolute; top: 10px; right: 10px; font-size: 24px; background: none; border: none; color: #444; width: 44px; height: 44px; z-index: 10; }
+        .star-btn.on { color: var(--star); }
+        .history-list { font-size: 12px; color: #8E8E93; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="nav">
-        <button onclick="showView('list')">录入列表</button>
-        <button onclick="showView('cards')">卡片复习</button>
+<div id="hSc" class="screen">
+    <div class="header"><h2>単語帳</h2><div style="display:flex;gap:5px"><button class="btn-s shi" onclick="imp()">コード入力</button><button class="btn-s" onclick="addB()">＋新規</button></div></div>
+    
+    <div class="guide-box">
+        <b>💡 3サイクル学習とは？</b>
+        1. 最初の3語を集中学習<br>
+        2. 完璧なら次の3語を追加して復習<br>
+        3. 常に「新しい単語」と「直前の復習」を混ぜて脳に定着させます。
+        <button class="btn-s sec" onclick="setSc('logSc')" style="width:100%; margin-top:10px;">📜 更新履歴を見る</button>
     </div>
 
-    <div id="list-view">
-        <div class="input-box">
-            <input type="text" id="word" placeholder="新单词 (可通过图片复制)">
-            <input type="text" id="mean" placeholder="中文意思">
-            <button class="btn-main" onclick="saveWord()">存入单词本</button>
-        </div>
-        <div id="word-list-items"></div>
+    <div id="bL" style="flex:1; overflow-y:auto;"></div>
+</div>
+
+<div id="logSc" class="screen">
+    <div class="header"><h2>更新履歴</h2><button class="btn-s sec" onclick="setSc('hSc')">戻る</button></div>
+    <div style="overflow-y:auto;">
+        <div class="item" style="display:block"><b>v30: 文字表示の修正</b><br><small>学習モードのラベルと初期ガイドを復旧しました。</small></div>
+        <div class="item" style="display:block"><b>v29: 操作性向上</b><br><small>スワイプの感度調整とコード共有の完全復旧。</small></div>
+    </div>
+</div>
+
+<div id="sSc" class="screen">
+    <div class="header"><h2 id="bN">設定</h2><button class="btn-s sec" onclick="setSc('hSc')">戻る</button></div>
+    
+    <div style="display:flex; gap:10px">
+        <div style="flex:1;"><label>開始番号</label><input type="number" id="sN" value="1"></div>
+        <div style="flex:1;"><label>終了番号</label><input type="number" id="eN"></div>
     </div>
 
-    <div id="card-container">
+    <label>学習モードの選択</label>
+    <select id="lMode">
+        <option value="3cycle">🧠 3サイクル学習 (おすすめ)</option>
+        <option value="normal">📖 通常学習 (1枚ずつ順に)</option>
+    </select>
+
+    <div style="display:flex; align-items:center; gap:10px; background:#1C1C1E; padding:12px; border-radius:12px; margin:10px 0; border:1px solid var(--border);">
+        <input type="checkbox" id="starOnly" style="width:20px; margin:0;"> 
+        <span style="font-size:14px;">★ お気に入りのみ学習</span>
+    </div>
+
+    <button onclick="go()" style="margin-top:10px; height:60px; font-size:18px;">学習開始</button>
+    
+    <div style="display:flex; gap:5px; margin-top:10px;">
+        <button class="sec" onclick="setSc('eSc')" style="flex:1">単語の編集</button>
+        <button class="shi" onclick="exp()" style="flex:1">コード共有</button>
+    </div>
+
+    <div class="history-list"><b>🕒 最近5回の履歴</b><div id="hist"></div></div>
+</div>
+
+<div id="eSc" class="screen">
+    <div class="header"><h2>単語編集</h2><button class="btn-s sec" onclick="setSc('sSc')">完了</button></div>
+    <div id="editContainer">
+        <div class="input-area">
+            <textarea id="bI" rows="3" placeholder="apple,りんご (カンマで区切る)"></textarea>
+            <div style="display:flex; gap:5px;"><button onclick="bAdd()" id="addBtn" style="flex:1;">追加/保存</button><button class="dan" onclick="clearAllWords()" style="width:80px;">全削除</button></div>
         </div>
+        <div id="wL" class="scroll-list"></div>
+    </div>
+</div>
 
-    <script>
-        function saveWord() {
-            const w = document.getElementById('word').value;
-            const m = document.getElementById('mean').value;
-            if(!w || !m) return;
-            const words = JSON.parse(localStorage.getItem('myWords') || '[]');
-            words.push({w, m, id: Date.now()});
-            localStorage.setItem('myWords', JSON.stringify(words));
-            document.getElementById('word').value = '';
-            document.getElementById('mean').value = '';
-            renderList();
+<div id="lSc" class="screen" style="padding:0; overflow:hidden;">
+    <header id="appHeader">
+        <div style="display:flex; gap:8px; margin-bottom:10px;"><div class="st-bx" id="si">-</div><div class="st-bx" id="ri">-</div><div class="st-bx" id="pi">-</div></div>
+        <div style="height:4px; background:#38383A; border-radius:2px; overflow:hidden;"><div id="bar" style="height:100%; background:var(--primary); width:0%; transition:0.3s;"></div></div>
+        <button onclick="setSc('sSc')" style="position:absolute; top:18px; right:15px;" class="btn-s sec">Exit</button>
+    </header>
+    <div id="app">
+        <div class="c-cnt" id="cnt" onclick="flip()"><div id="cF" class="c"></div><div id="cB" class="c back"></div></div>
+        <button id="cardStar" class="star-btn" onclick="toggleStar(event)">★</button>
+    </div>
+    <div style="padding:20px 0 40px; display:flex; justify-content:space-around; color:#8E8E93; font-size:13px;"><span>〈 左：戻る</span><span>右：進む 〉</span></div>
+</div>
+
+<script>
+    const initialWords = [{e:"vulnerable",j:"傷つきやすい",s:false},{e:"heed",j:"気をつける",s:false},{e:"bystander",j:"傍観者",s:false}];
+    let db = JSON.parse(localStorage.getItem('v14')||'{}');
+    let history = JSON.parse(localStorage.getItem('v14_hist')||'[]');
+    if(!Object.keys(db).length) { db['init_book'] = {name:"初期単語帳", words:initialWords}; sv(); }
+
+    let cur=null, editIdx=null, pool=[], sets=[], si=0, cs=3, ii=0, flp=false, mode='3cycle';
+    const $ = id => document.getElementById(id);
+
+    function setSc(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        $(id).classList.add('active');
+        if(id === 'hSc') renderH();
+        if(id === 'sSc') renderS();
+        if(id === 'eSc') { editIdx = null; $('addBtn').innerText = '追加'; renderE(); }
+    }
+
+    function renderH() {
+        $('bL').innerHTML = Object.keys(db).map(id => `
+            <div class="item" onclick="opn('${id}')"><div><b>${db[id].name}</b><br><small>${db[id].words.length}語</small></div>
+            <button class="btn-s dan" onclick="event.stopPropagation(); delB('${id}')">削除</button></div>`).join('');
+    }
+
+    function renderS() {
+        $('hist').innerHTML = history.filter(h => h.book === db[cur].name).map(h => `<div>${h.date} - ${h.range}</div>`).join('');
+    }
+
+    function addB() { let n = prompt("名前"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
+    function delB(id) { if(confirm("削除？")){ delete db[id]; sv(); renderH(); }}
+    function opn(id) { cur=id; $('bN').innerText=db[id].name; $('eN').value=db[id].words.length; setSc('sSc'); }
+    function sv() { localStorage.setItem('v14', JSON.stringify(db)); }
+
+    function bAdd() {
+        let val = $('bI').value.trim(); if(!val) return;
+        if(editIdx !== null) {
+            let p = val.split(/[,,、]/);
+            if(p.length>=2) db[cur].words[editIdx] = {e:p[0].trim(), j:p[1].trim(), s:db[cur].words[editIdx].s};
+            editIdx = null; $('addBtn').innerText = '追加';
+        } else {
+            val.split('\n').forEach(l => {
+                let p = l.split(/[,,、]/);
+                if(p.length>=2) db[cur].words.push({e:p[0].trim(), j:p[1].trim(), s:false});
+            });
         }
+        sv(); $('bI').value=''; renderE();
+    }
 
-        function showView(view) {
-            if(view === 'list') {
-                document.getElementById('list-view').style.display = 'block';
-                document.getElementById('card-container').style.display = 'none';
-            } else {
-                document.getElementById('list-view').style.display = 'none';
-                document.getElementById('card-container').style.display = 'flex';
-                renderCards();
-            }
-        }
+    function renderE() {
+        $('wL').innerHTML = db[cur].words.map((w,i) => `
+            <div class="item">
+                <div class="word-info"><b>${w.e}</b><small>${w.j}</small></div>
+                <button class="star-btn ${w.s?'on':''}" onclick="toggleStarAt(${i})" style="position:static; font-size:18px;">★</button>
+                <button class="btn-s" onclick="prepareEdit(${i})">修正</button>
+                <button class="btn-s dan" onclick="remW(${i})">消</button>
+            </div>`).reverse().join('');
+    }
 
-        function renderList() {
-            const words = JSON.parse(localStorage.getItem('myWords') || '[]');
-            document.getElementById('word-list-items').innerHTML = words.reverse().map(item => `
-                <div style="background:white; padding:15px; border-radius:12px; margin-top:10px; display:flex; justify-content:space-between;">
-                    <span><b>${item.w}</b>: ${item.m}</span>
-                </div>
-            `).join('');
-        }
+    function toggleStarAt(i) { db[cur].words[i].s = !db[cur].words[i].s; sv(); renderE(); }
+    function prepareEdit(i) { editIdx = i; let w = db[cur].words[i]; $('bI').value = `${w.e},${w.j}`; $('addBtn').innerText = '保存'; }
+    function remW(i) { db[cur].words.splice(i,1); sv(); renderE(); }
+    function clearAllWords() { if(confirm("全消去？")){ db[cur].words = []; sv(); renderE(); } }
 
-        function renderCards() {
-            const words = JSON.parse(localStorage.getItem('myWords') || '[]');
-            if(words.length === 0) {
-                document.getElementById('card-container').innerHTML = '<div class="card">请先添加单词</div>';
-                return;
-            }
-            document.getElementById('card-container').innerHTML = words.map(item => `
-                <div class="card" onclick="this.classList.toggle('flipped')">
-                    <div class="word">${item.w}</div>
-                    <div class="mean">${item.m}</div>
-                    <p style="position:absolute; bottom:20px; font-size:12px; color:#ccc;">点击翻转卡片</p>
-                </div>
-            `).join('');
-        }
+    function b64E(s) { return btoa(encodeURIComponent(s).replace(/%([0-9A-F]{2})/g, (m,p1)=>String.fromCharCode('0x'+p1))); }
+    function b64D(s) { try{return decodeURIComponent(atob(s).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));}catch(e){return null;}}
+    function imp() {
+        let c = prompt("コード貼付"); if(!c) return;
+        let d = b64D(c.trim());
+        try { let j = JSON.parse(d); if(j.name){ let id='b'+Date.now(); db[id]=j; sv(); renderH(); alert("完了"); }} catch(e){ alert("エラー"); }
+    }
+    function exp() {
+        try { let c = b64E(JSON.stringify(db[cur])); navigator.clipboard.writeText(c).then(()=>alert("コピー済")); } catch(e){ alert("失敗"); }
+    }
 
-        function speak(text) {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            window.speechSynthesis.speak(msg);
-        }
+    function go() {
+        let starOnly = $('starOnly').checked;
+        let start = parseInt($('sN').value)-1;
+        let end = parseInt($('eN').value);
+        let sw = db[cur].words.slice(start, end).filter(w => !starOnly || w.s);
+        if(!sw.length) { alert(starOnly ? "★がついた単語がありません" : "範囲内に単語がありません"); return; }
+        
+        history.unshift({date: new Date().toLocaleDateString(), book: db[cur].name, range: `${start+1}-${end}${starOnly?'(★)':''}`});
+        history = history.slice(0, 5); localStorage.setItem('v14_hist', JSON.stringify(history));
 
-        // 初始化
-        renderList();
-    </script>
+        pool = sw; mode = $('lMode').value; sets = [];
+        if(mode === '3cycle') { for(let i=0; i<pool.length; i+=30) sets.push(pool.slice(i, 30+i)); cs = 3; }
+        else { sets = [pool]; cs = pool.length; }
+        si = 0; ii = 0; setSc('lSc'); upd();
+    }
+
+    function upd() {
+        let s = sets[si], w = s[ii], c = $('cnt');
+        $('cF').innerText = w.e; $('cB').innerText = w.j; flp = false;
+        c.style.transition = "none"; c.style.transform = "translateX(0) rotateY(0deg)"; c.style.opacity = "0";
+        let lim = Math.min(cs, s.length);
+        $('si').innerText = mode==='3cycle'?`SET:${si+1}`:'NORMAL';
+        $('ri').innerText = `RANGE:1-${lim}`; $('pi').innerText = `${ii+1}/${lim}`;
+        $('bar').style.width = ((ii+1)/lim)*100+"%";
+        $('cardStar').classList.toggle('on', !!w.s);
+        setTimeout(()=>{ c.style.transition="all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)"; c.style.opacity="1"; },10);
+    }
+
+    function toggleStar(e) { e.stopPropagation(); sets[si][ii].s = !sets[si][ii].s; $('cardStar').classList.toggle('on', sets[si][ii].s); sv(); }
+    function flip() { flp=!flp; $('cnt').style.transform=`rotateY(${flp?180:0}deg)`; }
+
+    let sX=0, cX=0;
+    $('app').addEventListener('touchstart', e => { sX=e.touches[0].clientX; $('cnt').style.transition="none"; });
+    $('app').addEventListener('touchmove', e => { cX=(e.touches[0].clientX-sX)*1.2; $('cnt').style.transform=`translateX(${cX}px) rotateZ(${cX/20}deg) rotateY(${flp?180:0}deg)`; });
+    $('app').addEventListener('touchend', () => {
+        let c = $('cnt');
+        if(Math.abs(cX)>80){
+            let d = cX>0?1:-1; 
+            c.style.transition="0.2s ease-in";
+            c.style.transform=`translateX(${d*600}px) rotateZ(${d*30}deg)`; c.style.opacity="0";
+            setTimeout(()=>{ 
+                if(d>0){ 
+                    let s=sets[si]; ii++; 
+                    if(ii >= Math.min(cs, s.length)){ 
+                        if(cs >= s.length || mode === 'normal'){ 
+                            if(si < sets.length-1){ if(confirm("次のセットへ？")){si++; ii=0; cs=3;}} else {alert("完了！"); setSc('sSc');}
+                        } else { cs += 3; ii = 0; }
+                    }
+                } else if(ii>0){ ii--; } upd(); 
+            },150);
+        } else { c.style.transition="0.3s ease-out"; c.style.transform=`translateX(0) rotateY(${flp?180:0}deg)`; }
+        cX=0;
+    });
+
+    setSc('hSc');
+</script>
 </body>
 </html>
