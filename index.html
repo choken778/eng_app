@@ -3,93 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EngLogic Pro</title>
+    <title>EngLogic Pro v31</title>
     <style>
-        :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --accent: #FF9F0A; --star: #FFD60A; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        
-        /* 布局 */
+        :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --star: #FFD60A; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .screen { position: fixed; inset: 0; background: var(--bg); padding: 20px; box-sizing: border-box; display: none; z-index: 100; flex-direction: column; }
         .active { display: flex; }
-        .header { padding: 40px 0 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         
-        /* 列表与输入 */
+        /* 列表项样式 */
         .scroll-list { flex: 1; overflow-y: auto; padding-top: 10px; }
         .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        input, textarea, button, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; -webkit-appearance: none; }
-        button { background: var(--primary); border: none; font-weight: bold; transition: opacity 0.2s; }
-        button:active { opacity: 0.7; }
-        .btn-s { width: auto; padding: 8px 12px; font-size: 11px; margin: 0; }
-        .dan { background: #FF453A; } .sec { background: #3A3A3C; }
+        .item b { font-size: 18px; }
+        .star-on { color: var(--star) !important; }
 
-        /* 卡片引擎 */
-        #app { flex: 1; display: flex; align-items: center; justify-content: center; perspective: 1000px; touch-action: none; position: relative; }
-        .c-cnt { width: 85%; height: 60%; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; border: 1px solid var(--border); text-align: center; padding: 25px; backface-visibility: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 22px; }
+        /* 输入与按钮 */
+        input, textarea, button, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; outline: none; }
+        button { background: var(--primary); border: none; font-weight: bold; }
+        .sec { background: #3A3A3C; } .dan { background: #FF453A; }
+        .btn-s { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
+
+        /* 卡片容器：物理引擎基础 */
+        #app { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 1000px; touch-action: none; overflow: hidden; }
+        .c-cnt { width: 85%; height: 65%; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
+        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 24px; }
         
-        /* 进度条 */
-        .st-bx { background: #2C2C2E; border-radius: 8px; padding: 6px; flex: 1; text-align: center; font-size: 10px; color: #8E8E93; }
-        #bar { height: 4px; background: var(--primary); transition: 0.3s; border-radius: 2px; }
-
-        /* 星星按钮 */
-        .star-btn { position: absolute; top: 10px; right: 10px; font-size: 24px; background: none; border: none; color: #444; z-index: 10; width: 44px; }
-        .star-btn.on { color: var(--star); }
+        /* 筛选标签 */
+        .filter-tab { display: flex; gap: 10px; margin-bottom: 10px; }
+        .filter-tab span { font-size: 12px; padding: 5px 10px; border-radius: 20px; background: #2C2C2E; }
+        .filter-tab .active-f { background: var(--star); color: #000; }
     </style>
 </head>
 <body>
 
 <div id="hSc" class="screen active">
-    <div class="header"><h2>单词本</h2><button class="btn-s" onclick="addB()">＋新建</button></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2>单词本</h2><button class="btn-s" onclick="addB()">＋新建</button>
+    </div>
     <div id="bL" class="scroll-list"></div>
 </div>
 
 <div id="sSc" class="screen">
-    <div class="header"><h2 id="bN">设置</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button></div>
-    <div style="display:flex; gap:10px">
-        <input type="number" id="sN" value="1" placeholder="开始">
-        <input type="number" id="eN" placeholder="结束">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 id="bN">设置</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button>
     </div>
-    <select id="lMode">
-        <option value="3cycle">🧠 3サイクル学习</option>
-        <option value="normal">📖 顺序学习</option>
-    </select>
-    <button onclick="go()" style="height:60px; font-size:18px;">开始学习</button>
+    <div style="display:flex; gap:10px">
+        <input type="number" id="sN" value="1" placeholder="Start">
+        <input type="number" id="eN" placeholder="End">
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; background:#1C1C1E; padding:12px; border-radius:12px; border:1px solid var(--border);">
+        <input type="checkbox" id="starOnly" style="width:20px; margin:0;"> 
+        <span style="font-size:14px; color:var(--star);">★ 只学收藏单词</span>
+    </div>
+    <button onclick="go()" style="height:60px; font-size:18px; margin-top:20px;">开始学习</button>
     <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="sec" onclick="setSc('eSc')">编辑单词</button>
-        <button class="sec" onclick="exp()">导出代码</button>
+        <button class="sec" onclick="setSc('eSc')">查看/编辑</button>
+        <button class="sec" onclick="exp()">代码分享</button>
     </div>
 </div>
 
 <div id="eSc" class="screen">
-    <div class="header"><h2>编辑</h2><button class="btn-s" onclick="setSc('sSc')">完成</button></div>
-    <textarea id="bI" rows="3" placeholder="word,意思 (每行一个)"></textarea>
-    <button onclick="bAdd()">批量添加</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2>单词管理</h2><button class="btn-s" onclick="setSc('sSc')">完成</button>
+    </div>
+    <div class="filter-tab">
+        <span id="fAll" class="active-f" onclick="toggleEditFilter(false)">全部</span>
+        <span id="fStar" onclick="toggleEditFilter(true)">★ 收藏</span>
+    </div>
+    <textarea id="bI" rows="2" placeholder="word,意思 (新单词批量添加)"></textarea>
+    <button onclick="bAdd()">添加</button>
     <div id="wL" class="scroll-list"></div>
 </div>
 
 <div id="lSc" class="screen" style="padding:0;">
-    <header style="padding: 50px 20px 10px; background: #1C1C1E;">
-        <div style="display:flex; gap:8px; margin-bottom:10px;"><div class="st-bx" id="si"></div><div class="st-bx" id="pi"></div></div>
-        <div style="background:#38383A; border-radius:2px;"><div id="bar"></div></div>
-        <button onclick="setSc('sSc')" style="position:absolute; top:18px; right:15px;" class="btn-s sec">退出</button>
+    <header style="padding: 50px 20px 10px; background: #1C1C1E; border-bottom: 1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; color:#8E8E93; font-size:12px; margin-bottom:5px;">
+            <span id="si"></span><span id="pi"></span>
+        </div>
+        <div style="height:4px; background:#38383A; border-radius:2px;"><div id="bar" style="height:100%; background:var(--primary); width:0%; transition:0.3s;"></div></div>
+        <button onclick="setSc('sSc')" style="position:absolute; top:20px; right:15px;" class="btn-s sec">退出</button>
     </header>
     <div id="app">
         <div class="c-cnt" id="cnt" onclick="flip()">
             <div id="cF" class="c"></div>
             <div id="cB" class="c back"></div>
         </div>
-        <button id="cardStar" class="star-btn" onclick="toggleStar(event)">★</button>
+        <button id="cardStar" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:30px; color:#444;" onclick="toggleStar(event)">★</button>
     </div>
-    <div style="text-align:center; padding-bottom:40px; color:#444; font-size:12px;">向左划：上一个 | 向右划：下一个</div>
+    <div style="text-align:center; padding-bottom:40px; color:#666; font-size:12px;">向左划：上一个 | 向右划：下一个</div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('v15')||'{}');
-    let cur=null, pool=[], si=0, cs=3, ii=0, flp=false;
+    let db = JSON.parse(localStorage.getItem('v16')||'{}');
+    let cur=null, pool=[], ii=0, flp=false, editStarOnly=false;
     const $ = id => document.getElementById(id);
 
-    // 发音引擎
     function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
@@ -97,6 +105,8 @@
         msg.rate = 0.9;
         window.speechSynthesis.speak(msg);
     }
+
+    function sv() { localStorage.setItem('v16', JSON.stringify(db)); }
 
     function setSc(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -113,9 +123,9 @@
             </div>`).join('');
     }
 
-    function addB() { let n = prompt("单词本名称"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
+    function addB() { let n = prompt("名称"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
     function opn(id) { cur=id; $('bN').innerText=db[id].name; $('eN').value=db[id].words.length; setSc('sSc'); }
-    function sv() { localStorage.setItem('v15', JSON.stringify(db)); }
+    function delB(id) { if(confirm("确定删除？")){ delete db[id]; sv(); renderH(); }}
 
     function bAdd() {
         let val = $('bI').value.trim(); if(!val) return;
@@ -126,59 +136,89 @@
         sv(); $('bI').value=''; renderE();
     }
 
-    function renderE() {
-        $('wL').innerHTML = db[cur].words.map((w,i) => `
-            <div class="item">
-                <div style="flex:1"><b>${w.e}</b><small>${w.j}</small></div>
-                <button class="btn-s dan" onclick="remW(${i})">删</button>
-            </div>`).reverse().join('');
+    function toggleEditFilter(star) {
+        editStarOnly = star;
+        $('fAll').classList.toggle('active-f', !star);
+        $('fStar').classList.toggle('active-f', star);
+        renderE();
     }
 
+    function renderE() {
+        let ws = db[cur].words;
+        if(editStarOnly) ws = ws.filter(w => w.s);
+        $('wL').innerHTML = ws.map((w,i) => `
+            <div class="item">
+                <div style="flex:1"><b class="${w.s?'star-on':''}">${w.s?'★ ':''}${w.e}</b><br><small>${w.j}</small></div>
+                <button class="btn-s dan" onclick="remW(${db[cur].words.indexOf(w)})">删</button>
+            </div>`).reverse().join('');
+    }
     function remW(i) { db[cur].words.splice(i,1); sv(); renderE(); }
 
     function go() {
         let start = parseInt($('sN').value)-1, end = parseInt($('eN').value);
+        let starOnly = $('starOnly').checked;
         pool = db[cur].words.slice(start, end);
-        if(!pool.length) return alert("范围内没单词");
-        si = 0; ii = 0; cs = ($('lMode').value === '3cycle') ? 3 : pool.length;
-        setSc('lSc'); upd();
+        if(starOnly) pool = pool.filter(w => w.s);
+        if(!pool.length) return alert("选定范围内没有单词（或没有收藏词）");
+        ii = 0; setSc('lSc'); upd();
     }
 
     function upd() {
-        let s = pool.slice(si*30, (si+1)*30), w = s[ii];
+        let w = pool[ii];
         $('cF').innerText = w.e; $('cB').innerText = w.j; flp = false;
         $('cnt').style.transform = "rotateY(0deg)";
-        $('si').innerText = `SET: ${si+1}`;
-        $('pi').innerText = `${ii+1} / ${Math.min(cs, s.length)}`;
-        $('bar').style.width = ((ii+1)/Math.min(cs, s.length))*100+"%";
-        $('cardStar').classList.toggle('on', w.s);
-        speak(w.e); // 自动朗读英文
+        $('pi').innerText = `${ii+1} / ${pool.length}`;
+        $('bar').style.width = ((ii+1)/pool.length)*100+"%";
+        $('cardStar').style.color = w.s ? "var(--star)" : "#444";
+        speak(w.e);
     }
 
-    function flip() { 
-        flp=!flp; 
-        $('cnt').style.transform = `rotateY(${flp?180:0}deg)`; 
-        if(!flp) speak($('cF').innerText); // 切回正面时再次朗读
-    }
+    function flip() { flp=!flp; $('cnt').style.transform = `rotateY(${flp?180:0}deg)`; if(!flp) speak($('cF').innerText); }
+    function toggleStar(e) { e.stopPropagation(); pool[ii].s = !pool[ii].s; $('cardStar').style.color = pool[ii].s ? "var(--star)" : "#444"; sv(); }
 
-    function toggleStar(e) { e.stopPropagation(); pool[ii].s = !pool[ii].s; $('cardStar').classList.toggle('on', pool[ii].s); sv(); }
+    // --- 增强物理手势引擎 ---
+    let sX=0, cX=0, startT=0;
+    $('app').addEventListener('touchstart', e => { 
+        sX=e.touches[0].clientX; 
+        startT = Date.now();
+        $('cnt').style.transition = "none"; 
+    });
+    
+    $('app').addEventListener('touchmove', e => { 
+        cX = e.touches[0].clientX - sX;
+        let rot = cX / 15; // 随位移产生的旋转感
+        $('cnt').style.transform = `translateX(${cX}px) rotateZ(${rot}deg) rotateY(${flp?180:0}deg)`;
+    });
 
-    // 手势引擎
-    let sX=0, cX=0;
-    $('app').addEventListener('touchstart', e => { sX=e.touches[0].clientX; $('cnt').style.transition="none"; });
-    $('app').addEventListener('touchmove', e => { cX=(e.touches[0].clientX-sX); $('cnt').style.transform=`translateX(${cX}px) rotateZ(${cX/20}deg) rotateY(${flp?180:0}deg)`; });
-    $('app').addEventListener('touchend', () => {
-        $('cnt').style.transition="all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)";
-        if(Math.abs(cX)>100){
-            if(cX < 0 && ii > 0) ii--; 
-            else if(cX > 0) {
-                ii++;
-                if(ii >= cs) ii = 0; // 3循环逻辑：回到组首
-            }
-            upd();
+    $('app').addEventListener('touchend', e => {
+        let duration = Date.now() - startT;
+        let velocity = Math.abs(cX) / duration; // 计算速度
+
+        if(Math.abs(cX) > 120 || velocity > 0.5) { // 满足距离或爆发速度
+            let direction = cX > 0 ? 1 : -1;
+            // 离场动画
+            $('cnt').style.transition = "all 0.3s ease-in";
+            $('cnt').style.transform = `translateX(${direction * 500}px) opacity(0)`;
+            
+            setTimeout(() => {
+                if(direction > 0 && ii < pool.length - 1) ii++;
+                else if(direction < 0 && ii > 0) ii--;
+                
+                // 进场复位
+                $('cnt').style.transition = "none";
+                $('cnt').style.transform = `translateX(${-direction * 500}px)`;
+                upd();
+                setTimeout(() => {
+                    $('cnt').style.transition = "all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)";
+                    $('cnt').style.transform = `translateX(0) rotateY(0deg)`;
+                }, 10);
+            }, 200);
+        } else {
+            // 弹回原位
+            $('cnt').style.transition = "all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)";
+            $('cnt').style.transform = `translateX(0) rotateY(${flp?180:0}deg)`;
         }
-        $('cnt').style.transform=`translateX(0) rotateY(0deg)`;
-        cX=0;
+        cX = 0;
     });
 
     setSc('hSc');
