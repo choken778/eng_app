@@ -3,33 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EngLogic Pro v32</title>
+    <title>EngLogic Pro v34</title>
     <style>
-        :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --star: #FFD60A; }
+        :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --star: #FFD60A; --green: #32D74B; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .screen { position: fixed; inset: 0; background: var(--bg); padding: 20px; box-sizing: border-box; display: none; z-index: 100; flex-direction: column; }
         .active { display: flex; }
-        
-        /* 列表项 */
         .scroll-list { flex: 1; overflow-y: auto; padding-top: 10px; }
         .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .star-on { color: var(--star) !important; }
-
-        /* 输入与按钮 */
         input, textarea, button, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; outline: none; -webkit-appearance: none; }
         button { background: var(--primary); border: none; font-weight: bold; }
-        .sec { background: #3A3A3C; } .dan { background: #FF453A; }
+        .sec { background: #3A3A3C; } .dan { background: #FF453A; } .shi { background: var(--green); color: #000; }
         .btn-s { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
-
-        /* 卡片物理引擎 */
-        #app { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 1000px; touch-action: none; overflow: hidden; }
-        .c-cnt { width: 85%; height: 60%; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
-        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 24px; }
         
-        .filter-tab { display: flex; gap: 10px; margin-bottom: 10px; }
-        .filter-tab span { font-size: 12px; padding: 6px 12px; border-radius: 20px; background: #2C2C2E; color: #8E8E93; }
-        .filter-tab .active-f { background: var(--star); color: #000; font-weight: bold; }
+        /* 学习界面 */
+        #app { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 1000px; touch-action: none; overflow: hidden; }
+        .c-cnt { width: 85%; height: 50%; position: relative; transform-style: preserve-3d; }
+        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 22px; }
+        
+        /* 进阶按钮浮动窗 */
+        .lvl-up { position: fixed; bottom: 40px; left: 20px; right: 20px; display: flex; gap: 10px; z-index: 200; }
     </style>
 </head>
 <body>
@@ -43,21 +37,13 @@
 
 <div id="sSc" class="screen">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2 id="bN">设置</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button>
+        <h2 id="bN">阶梯学习</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button>
     </div>
-    <div style="display:flex; gap:10px">
-        <input type="number" id="sN" value="1" placeholder="开始">
-        <input type="number" id="eN" placeholder="结束">
+    <div style="background:#1C1C1E; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid var(--border);">
+        <p style="color:var(--green); font-weight:bold; margin-top:0;">1. 初始范围 1-3</p>
+        <p style="font-size:12px; color:#8E8E93;">学习中点击“+3 单词”按钮，范围会自动扩展为 1-6, 1-9 并从头开始。</p>
     </div>
-    <select id="lMode">
-        <option value="3cycle">🧠 3-Cycle 循环 (推荐)</option>
-        <option value="normal">📖 顺序学习</option>
-    </select>
-    <div style="display:flex; align-items:center; gap:10px; background:#1C1C1E; padding:15px; border-radius:12px; border:1px solid var(--border);">
-        <input type="checkbox" id="starOnly" style="width:20px; margin:0;"> 
-        <span style="font-size:14px; color:var(--star);">★ 只学收藏单词</span>
-    </div>
-    <button onclick="go()" style="height:65px; font-size:20px; margin-top:20px;">开始学习</button>
+    <button onclick="go()" style="height:65px; font-size:20px; margin-top:20px;">开始第一阶梯 (1-3)</button>
     <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">管理单词</button>
 </div>
 
@@ -65,23 +51,20 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h2>管理</h2><button class="btn-s" onclick="setSc('sSc')">完成</button>
     </div>
-    <div class="filter-tab">
-        <span id="fAll" class="active-f" onclick="toggleEditFilter(false)">全部</span>
-        <span id="fStar" onclick="toggleEditFilter(true)">★ 收藏</span>
-    </div>
-    <textarea id="bI" rows="2" placeholder="word,意思 (新单词粘贴于此)"></textarea>
-    <button onclick="bAdd()">添加到库</button>
+    <textarea id="bI" rows="2" placeholder="apple,苹果"></textarea>
+    <button onclick="bAdd()">添加</button>
     <div id="wL" class="scroll-list"></div>
 </div>
 
 <div id="lSc" class="screen" style="padding:0;">
     <header style="padding: 50px 20px 10px; background: #1C1C1E; border-bottom: 1px solid var(--border);">
         <div style="display:flex; justify-content:space-between; color:#8E8E93; font-size:12px; margin-bottom:8px;">
-            <span id="si"></span><span id="pi"></span>
+            <span id="range-tag">Range: 1-3</span><span id="pi"></span>
         </div>
         <div style="height:4px; background:#38383A; border-radius:2px;"><div id="bar" style="height:100%; background:var(--primary); width:0%; transition:0.3s;"></div></div>
-        <button onclick="setSc('sSc')" style="position:absolute; top:20px; right:15px;" class="btn-s sec">退出</button>
+        <button onclick="setSc('sSc')" style="position:absolute; top:20px; right:15px;" class="btn-s sec">Exit</button>
     </header>
+    
     <div id="app">
         <div class="c-cnt" id="cnt" onclick="flip()">
             <div id="cF" class="c"></div>
@@ -89,23 +72,26 @@
         </div>
         <button id="cardStar" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:32px; color:#444;" onclick="toggleStar(event)">★</button>
     </div>
-    <div style="text-align:center; padding-bottom:50px; color:#555; font-size:13px;">左划：上一个 | 右划：下一个</div>
+
+    <div class="lvl-up">
+        <button class="shi" onclick="levelUp()" style="flex:2; height:55px; box-shadow: 0 10px 20px rgba(50,215,75,0.3);">+3 词并从头开始复习</button>
+    </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('v17')||'{}');
-    let cur=null, pool=[], ii=0, flp=false, editStarOnly=false, mode='3cycle';
+    let db = JSON.parse(localStorage.getItem('v19')||'{}');
+    let cur=null, fullList=[], pool=[], ii=0, flp=false, currentMax=3;
     const $ = id => document.getElementById(id);
 
     function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'en-US';
-        msg.rate = 0.9;
+        msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
     }
 
-    function sv() { localStorage.setItem('v17', JSON.stringify(db)); }
+    function sv() { localStorage.setItem('v19', JSON.stringify(db)); }
 
     function setSc(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -122,9 +108,9 @@
             </div>`).join('');
     }
 
-    function addB() { let n = prompt("单词本名称"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
-    function opn(id) { cur=id; $('bN').innerText=db[id].name; $('eN').value=db[id].words.length; setSc('sSc'); }
-    function delB(id) { if(confirm("确定删除单词本？")){ delete db[id]; sv(); renderH(); }}
+    function addB() { let n = prompt("名称"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
+    function opn(id) { cur=id; $('bN').innerText=db[id].name; setSc('sSc'); }
+    function delB(id) { if(confirm("删除？")){ delete db[id]; sv(); renderH(); }}
 
     function bAdd() {
         let val = $('bI').value.trim(); if(!val) return;
@@ -135,54 +121,53 @@
         sv(); $('bI').value=''; renderE();
     }
 
-    function toggleEditFilter(star) {
-        editStarOnly = star;
-        $('fAll').classList.toggle('active-f', !star);
-        $('fStar').classList.toggle('active-f', star);
-        renderE();
-    }
-
     function renderE() {
-        let ws = db[cur].words;
-        if(editStarOnly) ws = ws.filter(w => w.s);
-        $('wL').innerHTML = ws.map((w,i) => `
+        $('wL').innerHTML = db[cur].words.map((w,i) => `
             <div class="item">
-                <div style="flex:1"><b class="${w.s?'star-on':''}">${w.s?'★ ':''}${w.e}</b><br><small>${w.j}</small></div>
-                <button class="btn-s dan" onclick="remW(${db[cur].words.indexOf(w)})">删</button>
+                <div style="flex:1"><b>${w.s?'★ ':''}${w.e}</b><br><small>${w.j}</small></div>
+                <button class="btn-s dan" onclick="remW(${i})">删</button>
             </div>`).reverse().join('');
     }
     function remW(i) { db[cur].words.splice(i,1); sv(); renderE(); }
 
     function go() {
-        let start = parseInt($('sN').value)-1, end = parseInt($('eN').value);
-        let starOnly = $('starOnly').checked;
-        mode = $('lMode').value;
-        pool = db[cur].words.slice(start, end);
-        if(starOnly) pool = pool.filter(w => w.s);
-        if(!pool.length) return alert("范围内无单词");
-        ii = 0; setSc('lSc'); upd();
+        fullList = db[cur].words;
+        if(fullList.length < 1) return alert("没单词");
+        currentMax = 3;
+        startCycle();
+    }
+
+    function startCycle() {
+        pool = fullList.slice(0, currentMax);
+        ii = 0;
+        setSc('lSc');
+        $('range-tag').innerText = `Range: 1-${pool.length}`;
+        upd();
+    }
+
+    function levelUp() {
+        if(currentMax >= fullList.length) {
+            alert("已经是最后一个单词了！");
+            return;
+        }
+        currentMax += 3; // 阶梯增加 3
+        startCycle(); // 重新开始循环
     }
 
     function upd() {
         let w = pool[ii];
         $('cF').innerText = w.e; $('cB').innerText = w.j; flp = false;
         $('cnt').style.transform = "rotateY(0deg)";
-        
-        // 3-Cycle 状态显示
-        let currentCycle = Math.floor(ii / 3) + 1;
-        let posInCycle = (ii % 3) + 1;
-        $('si').innerText = mode === '3cycle' ? `Unit: ${currentCycle}` : `Normal Mode`;
         $('pi').innerText = `${ii+1} / ${pool.length}`;
-        
         $('bar').style.width = ((ii+1)/pool.length)*100+"%";
-        $('cardStar').style.color = w.s ? "var(--star)" : "#444";
+        $('cardStar').style.color = w.s ? "#FFD60A" : "#444";
         speak(w.e);
     }
 
     function flip() { flp=!flp; $('cnt').style.transform = `rotateY(${flp?180:0}deg)`; if(!flp) speak($('cF').innerText); }
-    function toggleStar(e) { e.stopPropagation(); pool[ii].s = !pool[ii].s; $('cardStar').style.color = pool[ii].s ? "var(--star)" : "#444"; sv(); }
+    function toggleStar(e) { e.stopPropagation(); pool[ii].s = !pool[ii].s; $('cardStar').style.color = pool[ii].s ? "#FFD60A" : "#444"; sv(); }
 
-    // --- 物理手势引擎 (回归 3-Cycle 逻辑) ---
+    // --- 物理引擎 ---
     let sX=0, cX=0, startT=0;
     $('app').addEventListener('touchstart', e => { sX=e.touches[0].clientX; startT=Date.now(); $('cnt').style.transition="none"; });
     $('app').addEventListener('touchmove', e => { cX=e.touches[0].clientX-sX; $('cnt').style.transform=`translateX(${cX}px) rotateZ(${cX/15}deg) rotateY(${flp?180:0}deg)`; });
@@ -193,27 +178,18 @@
             let dir = cX > 0 ? 1 : -1;
             $('cnt').style.transition = "all 0.2s ease-in";
             $('cnt').style.transform = `translateX(${dir*500}px) opacity(0)`;
-            
             setTimeout(() => {
                 if(dir > 0) { // Next
-                    if(mode === '3cycle') {
-                        // 3 循环逻辑：在 3 个词内循环
-                        let base = Math.floor(ii / 3) * 3;
-                        let limit = Math.min(base + 3, pool.length);
-                        ii++;
-                        if(ii >= limit) ii = base; // 达到小组上限，回到小组第一个
-                    } else {
-                        if(ii < pool.length - 1) ii++;
-                    }
+                    ii++; if(ii >= pool.length) ii = 0; // 自动跳回第一个
                 } else { // Prev
-                    if(ii > 0) ii--;
+                    if(ii > 0) ii--; else ii = pool.length - 1;
                 }
                 $('cnt').style.transition = "none";
                 $('cnt').style.transform = `translateX(${-dir*500}px)`;
                 upd();
                 setTimeout(() => {
                     $('cnt').style.transition = "all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)";
-                    $('cnt').style.transform = `translateX(0) rotateY(0deg)`;
+                    $('cnt').style.transform = "translateX(0) rotateY(0deg)";
                     $('cnt').style.opacity = "1";
                 }, 20);
             }, 150);
