@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EngLogic Pro v35</title>
+    <title>EngLogic Pro v36</title>
     <style>
         :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --star: #FFD60A; --green: #32D74B; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
@@ -12,18 +12,21 @@
         .scroll-list { flex: 1; overflow-y: auto; padding-top: 10px; }
         .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .idx-tag { font-size: 10px; color: #8E8E93; background: #2C2C2E; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
-        input, textarea, button, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; outline: none; -webkit-appearance: none; }
+        input, textarea, button { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; outline: none; -webkit-appearance: none; }
         button { background: var(--primary); border: none; font-weight: bold; }
-        .sec { background: #3A3A3C; } .dan { background: #FF453A; } .shi { background: var(--green); color: #000; }
+        .sec { background: #3A3A3C; } .dan { background: #FF453A; }
         .btn-s { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
         #app { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 1000px; touch-action: none; overflow: hidden; }
         .c-cnt { width: 85%; height: 50%; position: relative; transform-style: preserve-3d; }
-        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow-y: auto; }
+        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 22px; }
-        .lvl-up { position: fixed; bottom: 30px; left: 20px; right: 20px; display: flex; gap: 10px; z-index: 200; }
+        /* 自动进阶提示动画 */
+        #msg { position: fixed; top: 120px; left: 50%; transform: translateX(-50%); background: var(--green); color: #000; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 300; opacity: 0; transition: 0.5s; pointer-events: none; }
     </style>
 </head>
 <body>
+
+<div id="msg">阶梯进阶：+3 单词</div>
 
 <div id="hSc" class="screen active">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -37,7 +40,7 @@
         <h2 id="bN">学习设置</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button>
     </div>
     <div style="background:#1C1C1E; padding:15px; border-radius:15px; border:1px solid var(--border);">
-        <label style="font-size:12px; color:#8E8E93;">自定义学习范围 (编号)</label>
+        <label style="font-size:12px; color:#8E8E93;">总学习范围 (编号)</label>
         <div style="display:flex; gap:10px; align-items:center;">
             <input type="number" id="sN" value="1" style="text-align:center;">
             <span>至</span>
@@ -48,15 +51,16 @@
             <span style="font-size:15px; color:var(--star); font-weight:bold;">★ 仅学习收藏单词</span>
         </div>
     </div>
-    <button onclick="go()" style="height:65px; font-size:20px; margin-top:20px;">开始学习</button>
-    <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">管理单词 (查看编号)</button>
+    <p style="font-size:12px; color:#8E8E93; margin: 15px 5px;">模式：自动阶梯。从前3个词开始，每刷完一轮自动增加3个词，直至完成设定的总范围。</p>
+    <button onclick="go()" style="height:65px; font-size:20px; margin-top:10px;">进入自动阶梯</button>
+    <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">查看单词编号</button>
 </div>
 
 <div id="eSc" class="screen">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h2>单词管理</h2><button class="btn-s" onclick="setSc('sSc')">完成</button>
     </div>
-    <textarea id="bI" rows="2" placeholder="apple,苹果"></textarea>
+    <textarea id="bI" rows="2" placeholder="word,释义"></textarea>
     <button onclick="bAdd()">添加到库</button>
     <div id="wL" class="scroll-list"></div>
 </div>
@@ -64,7 +68,7 @@
 <div id="lSc" class="screen" style="padding:0;">
     <header style="padding: 50px 20px 10px; background: #1C1C1E; border-bottom: 1px solid var(--border);">
         <div style="display:flex; justify-content:space-between; color:#8E8E93; font-size:12px; margin-bottom:8px;">
-            <span id="range-tag">Range: 1-3</span><span id="pi"></span>
+            <span id="range-tag"></span><span id="pi"></span>
         </div>
         <div style="height:4px; background:#38383A; border-radius:2px;"><div id="bar" style="height:100%; background:var(--primary); width:0%; transition:0.3s;"></div></div>
         <button onclick="setSc('sSc')" style="position:absolute; top:20px; right:15px;" class="btn-s sec">Exit</button>
@@ -76,14 +80,12 @@
         </div>
         <button id="cardStar" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:32px; color:#444;" onclick="toggleStar(event)">★</button>
     </div>
-    <div class="lvl-up">
-        <button class="shi" onclick="levelUp()">+3 词并重头复习</button>
-    </div>
+    <div style="text-align:center; padding-bottom:60px; color:#555; font-size:12px;">刷完当前小组后，系统将自动加入新词</div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('v20')||'{}');
-    let cur=null, fullList=[], pool=[], ii=0, flp=false, lastEndIdx=3;
+    let db = JSON.parse(localStorage.getItem('v21')||'{}');
+    let cur=null, userRange=[], currentPool=[], ii=0, flp=false, stepLimit=3;
     const $ = id => document.getElementById(id);
 
     function speak(text) {
@@ -93,7 +95,7 @@
         window.speechSynthesis.speak(msg);
     }
 
-    function sv() { localStorage.setItem('v20', JSON.stringify(db)); }
+    function sv() { localStorage.setItem('v21', JSON.stringify(db)); }
 
     function setSc(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -137,37 +139,35 @@
         let e = parseInt($('eN').value);
         let starOnly = $('starOnly').checked;
         
-        fullList = db[cur].words.map((w, index) => ({...w, originalIdx: index}));
-        // 筛选逻辑
-        pool = fullList.slice(Math.max(0, s), e);
-        if(starOnly) pool = pool.filter(w => w.s);
+        // 1. 获取用户选择的总范围
+        userRange = db[cur].words.slice(Math.max(0, s), e).map((w, index) => ({...w, originalIdx: Math.max(0, s) + index}));
+        if(starOnly) userRange = userRange.filter(w => w.s);
         
-        if(!pool.length) return alert("范围内无单词或无收藏词");
-        lastEndIdx = e;
-        ii = 0; setSc('lSc');
+        if(!userRange.length) return alert("范围内无单词");
+        
+        // 2. 初始化第一阶梯 (3个词)
+        stepLimit = 3;
+        updateStep();
+        setSc('lSc');
+    }
+
+    function updateStep() {
+        currentPool = userRange.slice(0, stepLimit);
+        ii = 0;
         updUI();
     }
 
-    function levelUp() {
-        lastEndIdx += 3;
-        let s = parseInt($('sN').value)-1;
-        let starOnly = $('starOnly').checked;
-        pool = fullList.slice(Math.max(0, s), lastEndIdx);
-        if(starOnly) pool = pool.filter(w => w.s);
-        ii = 0; updUI();
-    }
-
     function updUI() {
-        $('range-tag').innerText = `Range: ${pool[0].originalIdx+1} - ${pool[pool.length-1].originalIdx+1}`;
+        $('range-tag').innerText = `Step: 1-${currentPool.length} (of ${userRange.length})`;
         upd();
     }
 
     function upd() {
-        let w = pool[ii];
+        let w = currentPool[ii];
         $('cF').innerText = w.e; $('cB').innerText = w.j; flp = false;
         $('cnt').style.transform = "rotateY(0deg)";
-        $('pi').innerText = `${ii+1} / ${pool.length}`;
-        $('bar').style.width = ((ii+1)/pool.length)*100+"%";
+        $('pi').innerText = `${ii+1} / ${currentPool.length}`;
+        $('bar').style.width = ((ii+1)/currentPool.length)*100+"%";
         $('cardStar').style.color = w.s ? "var(--star)" : "#444";
         speak(w.e);
     }
@@ -175,9 +175,9 @@
     function flip() { flp=!flp; $('cnt').style.transform = `rotateY(${flp?180:0}deg)`; if(!flp) speak($('cF').innerText); }
     function toggleStar(e) { 
         e.stopPropagation(); 
-        let target = pool[ii];
+        let target = currentPool[ii];
         target.s = !target.s;
-        db[cur].words[target.originalIdx].s = target.s; // 同步回原数据库
+        db[cur].words[target.originalIdx].s = target.s;
         $('cardStar').style.color = target.s ? "var(--star)" : "#444"; 
         sv(); 
     }
@@ -191,9 +191,23 @@
             let dir = cX > 0 ? 1 : -1;
             $('cnt').style.transition = "all 0.2s ease-in";
             $('cnt').style.transform = `translateX(${dir*500}px) opacity(0)`;
+            
             setTimeout(() => {
-                if(dir > 0) { ii++; if(ii >= pool.length) ii = 0; }
-                else { if(ii > 0) ii--; else ii = pool.length - 1; }
+                if(dir > 0) { // Next
+                    ii++; 
+                    if(ii >= currentPool.length) {
+                        // 触发自动进阶判定
+                        if(currentPool.length < userRange.length) {
+                            stepLimit += 3;
+                            showMsg();
+                            updateStep(); 
+                        } else {
+                            ii = 0; // 已达总范围上限，回到第一个
+                        }
+                    }
+                } else { // Prev
+                    if(ii > 0) ii--; else ii = currentPool.length - 1;
+                }
                 $('cnt').style.transition = "none";
                 $('cnt').style.transform = `translateX(${-dir*500}px)`;
                 upd();
@@ -209,6 +223,11 @@
         }
         cX = 0;
     });
+
+    function showMsg() {
+        $('msg').style.opacity = 1;
+        setTimeout(() => { $('msg').style.opacity = 0; }, 1500);
+    }
 
     setSc('hSc');
 </script>
