@@ -3,27 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EngLogic Pro v34</title>
+    <title>EngLogic Pro v35</title>
     <style>
         :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --star: #FFD60A; --green: #32D74B; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .screen { position: fixed; inset: 0; background: var(--bg); padding: 20px; box-sizing: border-box; display: none; z-index: 100; flex-direction: column; }
         .active { display: flex; }
         .scroll-list { flex: 1; overflow-y: auto; padding-top: 10px; }
-        .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .idx-tag { font-size: 10px; color: #8E8E93; background: #2C2C2E; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
         input, textarea, button, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; outline: none; -webkit-appearance: none; }
         button { background: var(--primary); border: none; font-weight: bold; }
         .sec { background: #3A3A3C; } .dan { background: #FF453A; } .shi { background: var(--green); color: #000; }
         .btn-s { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
-        
-        /* 学习界面 */
         #app { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 1000px; touch-action: none; overflow: hidden; }
         .c-cnt { width: 85%; height: 50%; position: relative; transform-style: preserve-3d; }
-        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .c { position: absolute; inset: 0; background: var(--card); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; border: 1px solid var(--border); text-align: center; padding: 30px; backface-visibility: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow-y: auto; }
         .c.back { transform: rotateY(180deg); color: var(--primary); font-size: 22px; }
-        
-        /* 进阶按钮浮动窗 */
-        .lvl-up { position: fixed; bottom: 40px; left: 20px; right: 20px; display: flex; gap: 10px; z-index: 200; }
+        .lvl-up { position: fixed; bottom: 30px; left: 20px; right: 20px; display: flex; gap: 10px; z-index: 200; }
     </style>
 </head>
 <body>
@@ -37,22 +34,30 @@
 
 <div id="sSc" class="screen">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2 id="bN">阶梯学习</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button>
+        <h2 id="bN">学习设置</h2><button class="btn-s sec" onclick="setSc('hSc')">返回</button>
     </div>
-    <div style="background:#1C1C1E; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid var(--border);">
-        <p style="color:var(--green); font-weight:bold; margin-top:0;">1. 初始范围 1-3</p>
-        <p style="font-size:12px; color:#8E8E93;">学习中点击“+3 单词”按钮，范围会自动扩展为 1-6, 1-9 并从头开始。</p>
+    <div style="background:#1C1C1E; padding:15px; border-radius:15px; border:1px solid var(--border);">
+        <label style="font-size:12px; color:#8E8E93;">自定义学习范围 (编号)</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="number" id="sN" value="1" style="text-align:center;">
+            <span>至</span>
+            <input type="number" id="eN" style="text-align:center;">
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <input type="checkbox" id="starOnly" style="width:22px; margin:0;"> 
+            <span style="font-size:15px; color:var(--star); font-weight:bold;">★ 仅学习收藏单词</span>
+        </div>
     </div>
-    <button onclick="go()" style="height:65px; font-size:20px; margin-top:20px;">开始第一阶梯 (1-3)</button>
-    <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">管理单词</button>
+    <button onclick="go()" style="height:65px; font-size:20px; margin-top:20px;">开始学习</button>
+    <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">管理单词 (查看编号)</button>
 </div>
 
 <div id="eSc" class="screen">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h2>管理</h2><button class="btn-s" onclick="setSc('sSc')">完成</button>
+        <h2>单词管理</h2><button class="btn-s" onclick="setSc('sSc')">完成</button>
     </div>
     <textarea id="bI" rows="2" placeholder="apple,苹果"></textarea>
-    <button onclick="bAdd()">添加</button>
+    <button onclick="bAdd()">添加到库</button>
     <div id="wL" class="scroll-list"></div>
 </div>
 
@@ -64,7 +69,6 @@
         <div style="height:4px; background:#38383A; border-radius:2px;"><div id="bar" style="height:100%; background:var(--primary); width:0%; transition:0.3s;"></div></div>
         <button onclick="setSc('sSc')" style="position:absolute; top:20px; right:15px;" class="btn-s sec">Exit</button>
     </header>
-    
     <div id="app">
         <div class="c-cnt" id="cnt" onclick="flip()">
             <div id="cF" class="c"></div>
@@ -72,26 +76,24 @@
         </div>
         <button id="cardStar" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:32px; color:#444;" onclick="toggleStar(event)">★</button>
     </div>
-
     <div class="lvl-up">
-        <button class="shi" onclick="levelUp()" style="flex:2; height:55px; box-shadow: 0 10px 20px rgba(50,215,75,0.3);">+3 词并从头开始复习</button>
+        <button class="shi" onclick="levelUp()">+3 词并重头复习</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('v19')||'{}');
-    let cur=null, fullList=[], pool=[], ii=0, flp=false, currentMax=3;
+    let db = JSON.parse(localStorage.getItem('v20')||'{}');
+    let cur=null, fullList=[], pool=[], ii=0, flp=false, lastEndIdx=3;
     const $ = id => document.getElementById(id);
 
     function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'en-US';
-        msg.rate = 0.85;
+        msg.lang = 'en-US'; msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
     }
 
-    function sv() { localStorage.setItem('v19', JSON.stringify(db)); }
+    function sv() { localStorage.setItem('v20', JSON.stringify(db)); }
 
     function setSc(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -109,7 +111,7 @@
     }
 
     function addB() { let n = prompt("名称"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
-    function opn(id) { cur=id; $('bN').innerText=db[id].name; setSc('sSc'); }
+    function opn(id) { cur=id; $('bN').innerText=db[id].name; $('eN').value=db[id].words.length; setSc('sSc'); }
     function delB(id) { if(confirm("删除？")){ delete db[id]; sv(); renderH(); }}
 
     function bAdd() {
@@ -124,34 +126,40 @@
     function renderE() {
         $('wL').innerHTML = db[cur].words.map((w,i) => `
             <div class="item">
-                <div style="flex:1"><b>${w.s?'★ ':''}${w.e}</b><br><small>${w.j}</small></div>
+                <div style="flex:1"><span class="idx-tag">#${i+1}</span><b style="${w.s?'color:var(--star)':''}">${w.e}</b><br><small>${w.j}</small></div>
                 <button class="btn-s dan" onclick="remW(${i})">删</button>
             </div>`).reverse().join('');
     }
     function remW(i) { db[cur].words.splice(i,1); sv(); renderE(); }
 
     function go() {
-        fullList = db[cur].words;
-        if(fullList.length < 1) return alert("没单词");
-        currentMax = 3;
-        startCycle();
-    }
-
-    function startCycle() {
-        pool = fullList.slice(0, currentMax);
-        ii = 0;
-        setSc('lSc');
-        $('range-tag').innerText = `Range: 1-${pool.length}`;
-        upd();
+        let s = parseInt($('sN').value)-1;
+        let e = parseInt($('eN').value);
+        let starOnly = $('starOnly').checked;
+        
+        fullList = db[cur].words.map((w, index) => ({...w, originalIdx: index}));
+        // 筛选逻辑
+        pool = fullList.slice(Math.max(0, s), e);
+        if(starOnly) pool = pool.filter(w => w.s);
+        
+        if(!pool.length) return alert("范围内无单词或无收藏词");
+        lastEndIdx = e;
+        ii = 0; setSc('lSc');
+        updUI();
     }
 
     function levelUp() {
-        if(currentMax >= fullList.length) {
-            alert("已经是最后一个单词了！");
-            return;
-        }
-        currentMax += 3; // 阶梯增加 3
-        startCycle(); // 重新开始循环
+        lastEndIdx += 3;
+        let s = parseInt($('sN').value)-1;
+        let starOnly = $('starOnly').checked;
+        pool = fullList.slice(Math.max(0, s), lastEndIdx);
+        if(starOnly) pool = pool.filter(w => w.s);
+        ii = 0; updUI();
+    }
+
+    function updUI() {
+        $('range-tag').innerText = `Range: ${pool[0].originalIdx+1} - ${pool[pool.length-1].originalIdx+1}`;
+        upd();
     }
 
     function upd() {
@@ -160,30 +168,32 @@
         $('cnt').style.transform = "rotateY(0deg)";
         $('pi').innerText = `${ii+1} / ${pool.length}`;
         $('bar').style.width = ((ii+1)/pool.length)*100+"%";
-        $('cardStar').style.color = w.s ? "#FFD60A" : "#444";
+        $('cardStar').style.color = w.s ? "var(--star)" : "#444";
         speak(w.e);
     }
 
     function flip() { flp=!flp; $('cnt').style.transform = `rotateY(${flp?180:0}deg)`; if(!flp) speak($('cF').innerText); }
-    function toggleStar(e) { e.stopPropagation(); pool[ii].s = !pool[ii].s; $('cardStar').style.color = pool[ii].s ? "#FFD60A" : "#444"; sv(); }
+    function toggleStar(e) { 
+        e.stopPropagation(); 
+        let target = pool[ii];
+        target.s = !target.s;
+        db[cur].words[target.originalIdx].s = target.s; // 同步回原数据库
+        $('cardStar').style.color = target.s ? "var(--star)" : "#444"; 
+        sv(); 
+    }
 
-    // --- 物理引擎 ---
     let sX=0, cX=0, startT=0;
     $('app').addEventListener('touchstart', e => { sX=e.touches[0].clientX; startT=Date.now(); $('cnt').style.transition="none"; });
     $('app').addEventListener('touchmove', e => { cX=e.touches[0].clientX-sX; $('cnt').style.transform=`translateX(${cX}px) rotateZ(${cX/15}deg) rotateY(${flp?180:0}deg)`; });
-
     $('app').addEventListener('touchend', () => {
-        let velocity = Math.abs(cX) / (Date.now() - startT);
-        if(Math.abs(cX) > 100 || velocity > 0.4) {
+        let vel = Math.abs(cX) / (Date.now() - startT);
+        if(Math.abs(cX) > 100 || vel > 0.4) {
             let dir = cX > 0 ? 1 : -1;
             $('cnt').style.transition = "all 0.2s ease-in";
             $('cnt').style.transform = `translateX(${dir*500}px) opacity(0)`;
             setTimeout(() => {
-                if(dir > 0) { // Next
-                    ii++; if(ii >= pool.length) ii = 0; // 自动跳回第一个
-                } else { // Prev
-                    if(ii > 0) ii--; else ii = pool.length - 1;
-                }
+                if(dir > 0) { ii++; if(ii >= pool.length) ii = 0; }
+                else { if(ii > 0) ii--; else ii = pool.length - 1; }
                 $('cnt').style.transition = "none";
                 $('cnt').style.transform = `translateX(${-dir*500}px)`;
                 upd();
