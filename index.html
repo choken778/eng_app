@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EngLogic Pro v36</title>
+    <title>EngLogic Pro v37</title>
     <style>
         :root { --primary: #0A84FF; --bg: #000; --card: #1C1C1E; --text: #FFF; --border: #38383A; --star: #FFD60A; --green: #32D74B; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
@@ -13,7 +13,8 @@
         .item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .idx-tag { font-size: 10px; color: #8E8E93; background: #2C2C2E; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
         input, textarea, button { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; background: #2C2C2E; color: #FFF; box-sizing: border-box; outline: none; -webkit-appearance: none; }
-        button { background: var(--primary); border: none; font-weight: bold; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
+        button:active { opacity: 0.8; }
         .sec { background: #3A3A3C; } .dan { background: #FF453A; }
         .btn-s { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
         #app { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 1000px; touch-action: none; overflow: hidden; }
@@ -30,9 +31,15 @@
 
 <div id="hSc" class="screen active">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2>单词本</h2><button class="btn-s" onclick="addB()">＋新建</button>
+        <h2>单词本</h2>
+        <div>
+            <button class="btn-s sec" onclick="exportDb()" style="margin-right:5px;">导出备份</button>
+            <button class="btn-s" onclick="addB()">＋新建</button>
+        </div>
     </div>
     <div id="bL" class="scroll-list"></div>
+    <input type="file" id="importFile" style="display:none;" accept=".json" onchange="importDb(event)">
+    <button class="sec" onclick="document.getElementById('importFile').click()" style="margin-top:10px; padding:12px; font-size:14px;">导入备份 (JSON)</button>
 </div>
 
 <div id="sSc" class="screen">
@@ -47,20 +54,20 @@
             <input type="number" id="eN" style="text-align:center;">
         </div>
         <div style="display:flex; align-items:center; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
-            <input type="checkbox" id="starOnly" style="width:22px; margin:0;"> 
+            <input type="checkbox" id="starOnly" style="width:22px; height:22px; margin:0;"> 
             <span style="font-size:15px; color:var(--star); font-weight:bold;">★ 仅学习收藏单词</span>
         </div>
     </div>
     <p style="font-size:12px; color:#8E8E93; margin: 15px 5px;">模式：自动阶梯。从前3个词开始，每刷完一轮自动增加3个词，直至完成设定的总范围。</p>
     <button onclick="go()" style="height:65px; font-size:20px; margin-top:10px;">进入自动阶梯</button>
-    <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">查看单词编号</button>
+    <button class="sec" onclick="setSc('eSc')" style="margin-top:10px;">查看 / 管理单词</button>
 </div>
 
 <div id="eSc" class="screen">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h2>单词管理</h2><button class="btn-s" onclick="setSc('sSc')">完成</button>
     </div>
-    <textarea id="bI" rows="2" placeholder="word,释义"></textarea>
+    <textarea id="bI" rows="2" placeholder="格式: word,释义 (支持多行批量粘贴)"></textarea>
     <button onclick="bAdd()">添加到库</button>
     <div id="wL" class="scroll-list"></div>
 </div>
@@ -71,32 +78,62 @@
             <span id="range-tag"></span><span id="pi"></span>
         </div>
         <div style="height:4px; background:#38383A; border-radius:2px;"><div id="bar" style="height:100%; background:var(--primary); width:0%; transition:0.3s;"></div></div>
-        <button onclick="setSc('sSc')" style="position:absolute; top:20px; right:15px;" class="btn-s sec">Exit</button>
+        <button onclick="setSc('sSc')" style="position:absolute; top:40px; right:15px;" class="btn-s sec">Exit</button>
     </header>
     <div id="app">
         <div class="c-cnt" id="cnt" onclick="flip()">
             <div id="cF" class="c"></div>
             <div id="cB" class="c back"></div>
         </div>
-        <button id="cardStar" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:32px; color:#444;" onclick="toggleStar(event)">★</button>
+        <button id="cardStar" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:36px; color:#444;" onclick="toggleStar(event)">★</button>
     </div>
-    <div style="text-align:center; padding-bottom:60px; color:#555; font-size:12px;">刷完当前小组后，系统将自动加入新词</div>
+    <div style="text-align:center; padding-bottom:60px; color:#555; font-size:12px;">向左或向右滑动切换卡片</div>
 </div>
 
 <script>
+    // 数据库初始化
     let db = JSON.parse(localStorage.getItem('v21')||'{}');
     let cur=null, userRange=[], currentPool=[], ii=0, flp=false, stepLimit=3;
     const $ = id => document.getElementById(id);
 
+    // 语音合成机制
     function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'en-US'; msg.rate = 0.85;
+        msg.lang = 'en-US'; 
+        msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
     }
 
+    // 数据持久化与备份机制
     function sv() { localStorage.setItem('v21', JSON.stringify(db)); }
+    
+    function exportDb() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+        const anchor = document.createElement('a');
+        anchor.href = dataStr;
+        anchor.download = "EngLogic_Backup_" + new Date().toISOString().slice(0,10) + ".json";
+        anchor.click();
+    }
 
+    function importDb(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const imported = JSON.parse(evt.target.result);
+                if(confirm("导入将与现有数据合并，确认继续？")) {
+                    db = {...db, ...imported};
+                    sv(); renderH(); alert("导入成功！");
+                }
+            } catch(err) { alert("JSON 文件格式错误！"); }
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // Reset input
+    }
+
+    // 路由系统
     function setSc(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         $(id).classList.add('active');
@@ -104,18 +141,20 @@
         if(id === 'eSc') renderE();
     }
 
+    // 主页渲染
     function renderH() {
         $('bL').innerHTML = Object.keys(db).map(id => `
             <div class="item" onclick="opn('${id}')">
-                <div><b>${db[id].name}</b><br><small>${db[id].words.length} 词</small></div>
+                <div><b>${db[id].name}</b><br><small style="color:#8E8E93;">${db[id].words.length} 词</small></div>
                 <button class="btn-s dan" onclick="event.stopPropagation(); delB('${id}')">删除</button>
             </div>`).join('');
     }
 
-    function addB() { let n = prompt("名称"); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
+    function addB() { let n = prompt("输入单词本名称："); if(n){ let id='b'+Date.now(); db[id]={name:n,words:[]}; sv(); renderH(); }}
     function opn(id) { cur=id; $('bN').innerText=db[id].name; $('eN').value=db[id].words.length; setSc('sSc'); }
-    function delB(id) { if(confirm("删除？")){ delete db[id]; sv(); renderH(); }}
+    function delB(id) { if(confirm("确定删除此单词本？")){ delete db[id]; sv(); renderH(); }}
 
+    // 单词录入逻辑
     function bAdd() {
         let val = $('bI').value.trim(); if(!val) return;
         val.split('\n').forEach(l => {
@@ -128,24 +167,28 @@
     function renderE() {
         $('wL').innerHTML = db[cur].words.map((w,i) => `
             <div class="item">
-                <div style="flex:1"><span class="idx-tag">#${i+1}</span><b style="${w.s?'color:var(--star)':''}">${w.e}</b><br><small>${w.j}</small></div>
+                <div style="flex:1"><span class="idx-tag">#${i+1}</span><b style="${w.s?'color:var(--star)':''}">${w.e}</b><br><small style="color:#8E8E93;">${w.j}</small></div>
                 <button class="btn-s dan" onclick="remW(${i})">删</button>
             </div>`).reverse().join('');
     }
     function remW(i) { db[cur].words.splice(i,1); sv(); renderE(); }
 
+    // 学习核心逻辑
     function go() {
         let s = parseInt($('sN').value)-1;
         let e = parseInt($('eN').value);
         let starOnly = $('starOnly').checked;
         
-        // 1. 获取用户选择的总范围
         userRange = db[cur].words.slice(Math.max(0, s), e).map((w, index) => ({...w, originalIdx: Math.max(0, s) + index}));
         if(starOnly) userRange = userRange.filter(w => w.s);
         
-        if(!userRange.length) return alert("范围内无单词");
+        if(!userRange.length) return alert("选定范围内无单词！");
         
-        // 2. 初始化第一阶梯 (3个词)
+        // 【关键修复】静默激活 iOS/移动端 TTS 引擎权限
+        let unlockMsg = new SpeechSynthesisUtterance('');
+        unlockMsg.volume = 0; 
+        window.speechSynthesis.speak(unlockMsg);
+        
         stepLimit = 3;
         updateStep();
         setSc('lSc');
@@ -173,6 +216,7 @@
     }
 
     function flip() { flp=!flp; $('cnt').style.transform = `rotateY(${flp?180:0}deg)`; if(!flp) speak($('cF').innerText); }
+    
     function toggleStar(e) { 
         e.stopPropagation(); 
         let target = currentPool[ii];
@@ -182,43 +226,63 @@
         sv(); 
     }
 
+    // 高帧率滑动物理系统
     let sX=0, cX=0, startT=0;
-    $('app').addEventListener('touchstart', e => { sX=e.touches[0].clientX; startT=Date.now(); $('cnt').style.transition="none"; });
-    $('app').addEventListener('touchmove', e => { cX=e.touches[0].clientX-sX; $('cnt').style.transform=`translateX(${cX}px) rotateZ(${cX/15}deg) rotateY(${flp?180:0}deg)`; });
+    $('app').addEventListener('touchstart', e => { 
+        sX = e.touches[0].clientX; 
+        startT = Date.now(); 
+        $('cnt').style.transition = "none"; 
+    });
+    
+    $('app').addEventListener('touchmove', e => { 
+        cX = e.touches[0].clientX - sX; 
+        $('cnt').style.transform = `translateX(${cX}px) rotateZ(${cX/15}deg) rotateY(${flp?180:0}deg)`; 
+    });
+    
     $('app').addEventListener('touchend', () => {
         let vel = Math.abs(cX) / (Date.now() - startT);
         if(Math.abs(cX) > 100 || vel > 0.4) {
             let dir = cX > 0 ? 1 : -1;
-            $('cnt').style.transition = "all 0.2s ease-in";
-            $('cnt').style.transform = `translateX(${dir*500}px) opacity(0)`;
+            
+            // 飞出屏幕动画
+            $('cnt').style.transition = "transform 0.25s ease-out, opacity 0.2s";
+            $('cnt').style.transform = `translateX(${dir * window.innerWidth}px) rotateY(${flp?180:0}deg)`;
+            $('cnt').style.opacity = "0";
             
             setTimeout(() => {
-                if(dir > 0) { // Next
+                if(dir > 0) { // 下一张
                     ii++; 
                     if(ii >= currentPool.length) {
-                        // 触发自动进阶判定
                         if(currentPool.length < userRange.length) {
                             stepLimit += 3;
                             showMsg();
                             updateStep(); 
+                            return; 
                         } else {
-                            ii = 0; // 已达总范围上限，回到第一个
+                            ii = 0; 
                         }
                     }
-                } else { // Prev
+                } else { // 上一张
                     if(ii > 0) ii--; else ii = currentPool.length - 1;
                 }
+                
+                // 瞬间重置到反方向屏幕外
                 $('cnt').style.transition = "none";
-                $('cnt').style.transform = `translateX(${-dir*500}px)`;
-                upd();
-                setTimeout(() => {
-                    $('cnt').style.transition = "all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)";
-                    $('cnt').style.transform = "translateX(0) rotateY(0deg)";
-                    $('cnt').style.opacity = "1";
-                }, 20);
-            }, 150);
+                $('cnt').style.transform = `translateX(${-dir * 50}px) rotateY(0deg)`;
+                upd(); 
+                
+                // requestAnimationFrame 确保硬件加速渲染不掉帧闪烁
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        $('cnt').style.transition = "all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
+                        $('cnt').style.transform = "translateX(0) rotateY(0deg)";
+                        $('cnt').style.opacity = "1";
+                    });
+                });
+            }, 200); 
         } else {
-            $('cnt').style.transition = "all 0.4s cubic-bezier(0.18,0.89,0.32,1.28)";
+            // 回弹物理效果
+            $('cnt').style.transition = "all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
             $('cnt').style.transform = `translateX(0) rotateY(${flp?180:0}deg)`;
         }
         cX = 0;
@@ -229,6 +293,7 @@
         setTimeout(() => { $('msg').style.opacity = 0; }, 1500);
     }
 
+    // 启动入口
     setSc('hSc');
 </script>
 </body>
